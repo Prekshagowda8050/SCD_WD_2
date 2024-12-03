@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stopwatch App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="stopwatch-container">
+        <div class="time-display">
+            <span id="minutes">00</span>:<span id="seconds">00</span>:<span id="milliseconds">00</span>
+        </div>
+        <div class="controls">
+            <button id="startStopButton" onclick="startStopwatch()">Start</button>
+            <button id="resetButton" onclick="resetStopwatch()">Reset</button>
+            <button id="lapButton" onclick="recordLap()">Lap</button>
+        </div>
+        <div class="lap-times">
+            <h3>Lap Times</h3>
+            <ul id="lapList"></ul>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+/* Basic styling */
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+.stopwatch-container {
+    text-align: center;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    width: 300px;
+}
+
+.time-display {
+    font-size: 40px;
+    margin-bottom: 20px;
+}
+
+.controls button {
+    padding: 10px 20px;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+}
+
+#startStopButton {
+    background-color: #28a745;
+    color: white;
+}
+
+#startStopButton.stop {
+    background-color: #dc3545;
+}
+
+#resetButton {
+    background-color: #17a2b8;
+    color: white;
+}
+
+#lapButton {
+    background-color: #ffc107;
+    color: white;
+}
+
+.lap-times {
+    margin-top: 20px;
+}
+
+.lap-times ul {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+.lap-times li {
+    font-size: 14px;
+    border-bottom: 1px solid #ddd;
+    padding: 5px;
+}
+// Stopwatch variables
+let startTime;
+let updatedTime;
+let difference;
+let running = false;
+let interval;
+let lapTimes = [];
+
+// DOM Elements
+const minutesDisplay = document.getElementById("minutes");
+const secondsDisplay = document.getElementById("seconds");
+const millisecondsDisplay = document.getElementById("milliseconds");
+const startStopButton = document.getElementById("startStopButton");
+const lapList = document.getElementById("lapList");
+
+// Function to format time
+function formatTime(time) {
+    let minutes = Math.floor((time / (1000 * 60)) % 60);
+    let seconds = Math.floor((time / 1000) % 60);
+    let milliseconds = Math.floor((time % 1000) / 10);
+    
+    // Add leading zeros if less than 10
+    return {
+        minutes: minutes < 10 ? "0" + minutes : minutes,
+        seconds: seconds < 10 ? "0" + seconds : seconds,
+        milliseconds: milliseconds < 10 ? "0" + milliseconds : milliseconds
+    };
+}
+
+// Function to update the stopwatch
+function updateTime() {
+    if (running) {
+        updatedTime = new Date().getTime();
+        difference = updatedTime - startTime;
+        let time = formatTime(difference);
+        
+        // Update the display
+        minutesDisplay.textContent = time.minutes;
+        secondsDisplay.textContent = time.seconds;
+        millisecondsDisplay.textContent = time.milliseconds;
+    }
+}
+
+// Function to start and stop the stopwatch
+function startStopwatch() {
+    if (running) {
+        // Stop the stopwatch
+        clearInterval(interval);
+        startStopButton.textContent = "Start";
+        startStopButton.classList.remove("stop");
+        running = false;
+    } else {
+        // Start the stopwatch
+        startTime = new Date().getTime() - difference;
+        interval = setInterval(updateTime, 10);
+        startStopButton.textContent = "Stop";
+        startStopButton.classList.add("stop");
+        running = true;
+    }
+}
+
+// Function to reset the stopwatch
+function resetStopwatch() {
+    clearInterval(interval);
+    running = false;
+    startStopButton.textContent = "Start";
+    startStopButton.classList.remove("stop");
+    difference = 0;
+    
+    // Reset the display
+    minutesDisplay.textContent = "00";
+    secondsDisplay.textContent = "00";
+    millisecondsDisplay.textContent = "00";
+    
+    // Clear the lap times
+    lapList.innerHTML = "";
+    lapTimes = [];
+}
+
+// Function to record a lap time
+function recordLap() {
+    if (running) {
+        const lapTime = formatTime(difference);
+        const lapItem = document.createElement("li");
+        lapItem.textContent = `Lap ${lapTimes.length + 1}: ${lapTime.minutes}:${lapTime.seconds}:${lapTime.milliseconds}`;
+        lapList.appendChild(lapItem);
+        lapTimes.push(lapTime);
+    }
+}
